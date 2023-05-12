@@ -9,32 +9,24 @@ class Example extends Phaser.Scene {
         this.graphics.clear();
 
 
-        //y = (x-x0)tan(theta) - (g(x-x0)^2) / (2*(v*cos(theta))^2) + y0
         let g = 1;
         let x0 = this.ball.position.x;
         let y0 = this.ball.position.y;
         let k = 0.03;
-        let disp = Phaser.Math.Distance.Between(this.ball.position.x, this.ball.position.y, this.dot.position.x, this.dot.position.y) - 50
-        let v = Math.sqrt(2 * k * Math.pow(disp, 2))
-        let theta = (Math.PI * 2) - Phaser.Math.Angle.Between(this.ball.position.x, this.ball.position.y, this.dot.position.x, this.dot.position.y)
-
-        function y(x) {
-            let res = (x - x0) * Math.tan(theta) - (g * Math.pow(x - x0, 2)) / (2 * Math.pow(v * Math.cos(theta), 2)) + y0;
-            return res;
-        }
+        let disp = Phaser.Math.Distance.Between(this.ball.position.x, this.ball.position.y, this.dot.position.x, this.dot.position.y) - 50;
+        let v = Math.sqrt(2 * k * Math.pow(disp, 2));
+        let theta = (Math.PI * 2) - Phaser.Math.Angle.Between(this.ball.position.x, this.ball.position.y, this.dot.position.x, this.dot.position.y);
 
         this.graphics.fillStyle(0xff0000, 1);
-
-        for (let i = x0; i < this.w; i += this.w / 10) {
-            this.graphics.fillCircle(i, this.h - y(i), 5);
+        const y = (x) =>{
+            let res =  (x - this.ball.position.x) * Math.tan(theta) - (g * (x - this.ball.position.x) ** 2) / (2 * (v * Math.cos(theta)) ** 2) + this.ball.position.y
+            return res
+          }
+        for (let i = 0; i < this.w; i += this.w / 10) {
+            let x = this.ball.position.x + i;
+            
+            this.graphics.fillCircle(x, this.h-y(x), 5);
         }
-        // this.graphics.fillStyle(0xff0000, 1);
-        // for (let i = 0; i < this.w; i += this.w / 10) {
-        //     this.graphics.fillCircle(this.ball.position.x + i, y(this.ball.position.x + i), 5);
-        // }
-
-
-
 
 
         // const curve = new Phaser.Curves.QuadraticBezier(p0, p1, p2);
