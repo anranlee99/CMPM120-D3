@@ -77,6 +77,8 @@ class Example extends Phaser.Scene {
 
 
 
+        this.predict = true
+        // console.log(this.matter.world)
     }
     update() {
         if (this.predict) {
