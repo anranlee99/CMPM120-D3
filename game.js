@@ -19,11 +19,12 @@ class Example extends Phaser.Scene {
 
         this.graphics.fillStyle(0xff0000, 1);
         const y = (x) =>{
-            let res =  (x - this.ball.position.x) * Math.tan(theta) - (g * (x - this.ball.position.x) ** 2) / (2 * (v * Math.cos(theta)) ** 2) + this.ball.position.y
+            //x0,y0 are wrong
+            let res =  (x - x0) * Math.tan(theta) - (g * (x - x0) ** 2) / (2 * (v * Math.cos(theta)) ** 2) + y0
             return res
           }
         for (let i = 0; i < this.w; i += this.w / 10) {
-            let x = this.ball.position.x + i;
+            let x = x0 + i;
             
             this.graphics.fillCircle(x, this.h-y(x), 5);
         }
@@ -53,7 +54,7 @@ class Example extends Phaser.Scene {
         this.h = this.game.config.height
 
 
-        const platform = this.matter.add.rectangle(this.w * 0.25, this.h * 0.75, this.w / 2, this.h / 2, { isStatic: true })
+        // const platform = this.matter.add.rectangle(this.w * 0.25, this.h * 0.75, this.w / 2, this.h / 2, { isStatic: true })
 
         //move body x to the bottom left corner
         this.dot = this.matter.add.circle(this.w * 0.25, this.h * 0.25, 1, { isStatic: true })
