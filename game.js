@@ -63,25 +63,12 @@ class Example extends Phaser.Scene {
         };
         this.ball = this.matter.add.circle(this.w * 0.25, this.h * 0.25 + 50, 32)
         this.spring = this.matter.add.spring(this.ball, this.dot, 50, 0.03);
-        // console.log(this.spring)
-        /*
-        v = sqrt(2 * k * d / m)
-
-        v is the velocity of the this.ball in m/s
-        k is the spring constant in N/m
-        d is the maximum displacement of the spring in m
-        m is the mass of the this.ball in kg
-        */
-
-        // Calculate the velocity of the this.ball when released from the spring
-
-
-
         this.spring.render.visible = false;
+
         const blocks = []
         for (let i = 0; i < 10; i++) {
-            //at the 75%, i%height of the scrren,
-            //draw a 100 by 
+            //at the 75%, i/10 height of the screen,
+            //draw a 100 by 9 % of the screen rectangle
             let b = this.matter.add.rectangle(this.w * 0.75, this.h * i / 10, 100, this.h * 0.09)
             blocks.push(b)
         }
@@ -90,16 +77,8 @@ class Example extends Phaser.Scene {
 
 
 
-        this.maxV = 0;
-        this.fakeV = 0;
-        this.predict = true
-        // console.log(this.matter.world)
     }
     update() {
-        const damping = 0.03; // Damping coefficient
-        const d = Phaser.Math.Distance.Between(this.ball.position.x, this.ball.position.y, this.dot.position.x, this.dot.position.y); // Maximum displacement of the spring in m
-
-        const v = Math.sqrt(2 * d * (1 - damping));
         if (this.predict) {
             this.drawTrajectory()
         }
