@@ -1,48 +1,34 @@
 class Example extends Phaser.Scene {
     constructor() {
         super();
-        this.delete = []
     }
 
     drawTrajectory() {
 
         this.graphics.clear();
-
-
-        let g = 1;
-        let x0 = this.ball.position.x;
-        let y0 = this.ball.position.y;
-        let k = 0.03;
-        let disp = Phaser.Math.Distance.Between(this.ball.position.x, this.ball.position.y, this.dot.position.x, this.dot.position.y) - 50;
-        let v = Math.sqrt(2 * k * Math.pow(disp, 2));
+        // let g = this.matter.world.localWorld.gravity.scale; //doesn't further off than gravity y
+        let g = this.matter.world.localWorld.gravity.y;
+        let k = this.spring.stiffness;
+        let m = this.ball.mass;
+        let springLength = this.spring.length; //it's 0 atm but it's good to have it here
+        let disp = Phaser.Math.Distance.Between(this.ball.position.x, this.ball.position.y, this.dot.position.x, this.dot.position.y) - springLength;
+        
+        //initial velocity 
+        let v = Math.sqrt( 2 *k * Math.pow(disp, 2)/m);
+        //launch angle
         let theta = (Math.PI * 2) - Phaser.Math.Angle.Between(this.ball.position.x, this.ball.position.y, this.dot.position.x, this.dot.position.y);
-
-        this.graphics.fillStyle(0xff0000, 1);
-        const y = (x) =>{
-            //x0,y0 are wrong
-            let res =  (x - x0) * Math.tan(theta) - (g * (x - x0) ** 2) / (2 * (v * Math.cos(theta)) ** 2) + y0
+        const y = (x) => {
+            let res = (-(g * (x ** 2)) / (2 * ((v * Math.cos(theta)) ** 2))) + x * Math.tan(theta)
             return res
-          }
-        for (let i = 0; i < this.w; i += this.w / 10) {
-            let x = x0 + i;
-            
-            this.graphics.fillCircle(x, this.h-y(x), 5);
         }
 
-
-        // const curve = new Phaser.Curves.QuadraticBezier(p0, p1, p2);
-
-        // curve.draw(this.graphics, 64);
-
-        // const points = curve.getSpacedPoints(20);
-
-        // this.graphics.fillStyle(0xff0000, 1);
-        // //  Draw the points
-        // this.graphics.fillStyle(0xff0000, 1);
-
-        // for (let i = 0; i < points.length; i++) {
-        //     this.graphics.fillCircle(points[i].x, points[i].y, 4);
-        // }
+        //draw the trajectory
+        this.graphics.fillStyle(0xff0000, 1);
+        for (let i = 0; i < this.w; i += this.w / 100) {
+            let x = i;
+            //offset for the position of the ball 
+            this.graphics.fillCircle(x + this.ball.position.x, this.ball.position.y - y(x), 3);
+        }
     }
 
 
@@ -53,41 +39,36 @@ class Example extends Phaser.Scene {
         this.w = this.game.config.width
         this.h = this.game.config.height
 
-
-        // const platform = this.matter.add.rectangle(this.w * 0.25, this.h * 0.75, this.w / 2, this.h / 2, { isStatic: true })
-
-        //move body x to the bottom left corner
-        this.dot = this.matter.add.circle(this.w * 0.25, this.h * 0.25, 1, { isStatic: true })
+        //the anchor for the spring
+        this.dot = this.matter.add.circle(this.w * 0.25, this.h * 0.25, 0, { isStatic: true })
+        //turn off collision for the anchor
         this.dot.collisionFilter = {
             category: 0x0000,
             mask: 0x0000
         };
-        this.ball = this.matter.add.circle(this.w * 0.25, this.h * 0.25 + 50, 32)
-        this.spring = this.matter.add.spring(this.ball, this.dot, 50, 0.03);
+        //the ball and spring
+        this.ball = this.matter.add.circle(this.w * 0.25, this.h * 0.25 , 32)
+        this.spring = this.matter.add.spring(this.ball, this.dot, 0, 0.03);
         this.spring.render.visible = false;
+        // console.log(this.spring.length, this.ball.mass, this.matter.world.localWorld)
+        //make the mass 1 so calculations are easier
+        this.ball.mass = 1
 
         const blocks = []
         for (let i = 0; i < 10; i++) {
-            //at the 75%, i/10 height of the screen,
-            //draw a 100 by 9 % of the screen rectangle
             let b = this.matter.add.rectangle(this.w * 0.75, this.h * i / 10, 100, this.h * 0.09)
             blocks.push(b)
         }
         this.matter.add.mouseSpring();
-
-
-
-
         this.predict = true
-        // console.log(this.matter.world)
     }
     update() {
         if (this.predict) {
             this.drawTrajectory()
         }
-        // console.log("v, maxV - ", this.fakeV, this.maxV)
-        let m = Math.max(Math.abs(this.ball.velocity.x), Math.abs(this.ball.velocity.y))
-        if (m > 25 && !this.input.activePointer.isDown) {
+        //release the spring if the ball is far enough away
+        let disp = Phaser.Math.Distance.Between(this.ball.position.x, this.ball.position.y, this.dot.position.x, this.dot.position.y);
+        if (disp > this.ball.circleRadius && !this.input.activePointer.isDown) {
             this.matter.world.removeConstraint(this.spring)
             this.predict = false
             this.graphics.clear()
@@ -97,9 +78,12 @@ class Example extends Phaser.Scene {
 }
 
 const config = {
-    type: Phaser.AUTO,
-    width: 800,
-    height: 600,
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: 1920 ,
+        height: 1080
+    }, 
     backgroundColor: '#000000',
     resolution: 4,
     parent: 'phaser-example',
@@ -180,4 +164,3 @@ const config = {
 
 let game = new Phaser.Game(config);
 // Set the origin to the bottom-left corner of the screen
-console.log(game.scale)
