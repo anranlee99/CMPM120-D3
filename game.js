@@ -6,29 +6,21 @@ class Example extends Phaser.Scene {
     drawTrajectory() {
 
         this.graphics.clear();
-        // let g = this.matter.world.localWorld.gravity.scale; //doesn't further off than gravity y
-        let g = this.matter.world.localWorld.gravity.y;
-        let k = this.spring.stiffness;
-        let m = this.ball.mass;
-        let springLength = this.spring.length; //it's 0 atm but it's good to have it here
-        let disp = Phaser.Math.Distance.Between(this.ball.position.x, this.ball.position.y, this.dot.position.x, this.dot.position.y) - springLength;
-        
-        //initial velocity 
-        let v = Math.sqrt( 2 *k * Math.pow(disp, 2)/m);
-        //launch angle
-        let theta = (Math.PI * 2) - Phaser.Math.Angle.Between(this.ball.position.x, this.ball.position.y, this.dot.position.x, this.dot.position.y);
-        const y = (x) => {
-            let res = (-(g * (x ** 2)) / (2 * ((v * Math.cos(theta)) ** 2))) + x * Math.tan(theta)
-            return res
+        //credit: Adam Smith
+        let hFactory = new Phaser.Physics.Matter.Factory(hWorld);
+        let hDot = hFactory.circle(this.w * 0.25, this.h * 0.25, 0, { isStatic: true })
+        let hBall = hFactory.circle(this.ball.position.x, this.ball.position.y , 32);
+        let hSpring = hFactory.spring(hBall, hDot, this.spring.length, this.spring.stiffness);
+        const step = 1000/60;
+        hWorld.update(0,step);
+        hWorld.removeConstraint(hSpring);
+
+        for(let t = 0; t < 1000; t += step) {
+            let {x,y} = hBall.position;
+            this.graphics.fillCircle(x, y, 3);
+            hWorld.update(t,step);
         }
 
-        //draw the trajectory
-        this.graphics.fillStyle(0xff0000, 1);
-        for (let i = 0; i < this.w; i += this.w / 100) {
-            let x = i;
-            //offset for the position of the ball 
-            this.graphics.fillCircle(x + this.ball.position.x, this.ball.position.y - y(x), 3);
-        }
     }
 
 
@@ -51,8 +43,7 @@ class Example extends Phaser.Scene {
         this.spring = this.matter.add.spring(this.ball, this.dot, 0, 0.03);
         this.spring.render.visible = false;
         // console.log(this.spring.length, this.ball.mass, this.matter.world.localWorld)
-        //make the mass 1 so calculations are easier
-        this.ball.mass = 1
+        console.log(this.ball)
 
         const blocks = []
         for (let i = 0; i < 10; i++) {
